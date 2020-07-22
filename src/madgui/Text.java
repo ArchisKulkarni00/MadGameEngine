@@ -18,7 +18,6 @@ public class Text extends QuadGrid{
 		computeDimensions();
 		createGrid();
 		createText();
-		push();
 	}
 	
 	public Text(String pString) {
@@ -35,7 +34,6 @@ public class Text extends QuadGrid{
 		computeDimensions();
 		createGrid();
 		createText();
-		push();
 	}
 	
 	public void setBgColour(float r,float g, float b,float a) {
@@ -53,8 +51,5 @@ public class Text extends QuadGrid{
 			col = (int)temp/16;
 			mQuadGrid[i].setCoordinates(row*offset, col*offset, offset,offset);
 		}
-	}
-	private void push() {
-		push(Renderer.mTextVector);
 	}
 }

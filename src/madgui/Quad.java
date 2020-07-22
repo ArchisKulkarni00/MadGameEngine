@@ -1,5 +1,7 @@
 package madgui;
 
+import java.util.Vector;
+
 public class Quad {
 	
 //	quad dimension variables
@@ -71,6 +73,10 @@ public class Quad {
 			mVertices[i+2]=b;
 			mVertices[i+3]=a;
 		}
+	}
+	
+	public void push(Vector<Quad> pQuads) {
+		pQuads.add(this);
 	}
 
 }

@@ -1,5 +1,7 @@
 package widgets;
 
+import java.util.Vector;
+
 import madgui.Quad;
 import madgui.Renderer;
 
@@ -40,16 +42,15 @@ public class Entity {
 		mQuad.setBgColour(r, g, b, a);;
 	}
 	
-//	########## Protected functions ##########
-	protected void push() {
-		Renderer.mUIQuadVector.add(mQuad);
+	public void push(Vector<Quad> pQuads) {
+		pQuads.add(mQuad);
 	}
+	
+//	########## Protected functions ##########
 	
 	protected void setParEntity(Entity mParEntity) {
 		this.mParEntity = mParEntity;
 	}
-	
-	
 	
 //	########## temporary functions ##########
 //	temporary function!
@@ -78,7 +79,6 @@ public class Entity {
 		}
 		
 //		add object to ui vector
-		push();
 		
 	}
 	
@@ -94,13 +94,10 @@ public class Entity {
 //	called by layouts for auto positioning of entities
 	protected void setParentBasedPosition(float x,float y,float w,float h) {
 		mQuad = new Quad(x, y, w, h);
-//		add object to ui vector
-		push();
 	}
 	
 	protected void setParentBasedPosition(Label pLabel,float x,float y,float w,float h) {
 		pLabel.setLocation(x, y, w, h);
-//		add object to ui vector
 	}
 	
 }

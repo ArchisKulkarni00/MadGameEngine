@@ -2,13 +2,11 @@ package madgui;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
 
-import java.io.IOException;
 import java.util.Vector;
 
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL33;
 
 public class Renderer {
 	
@@ -16,26 +14,16 @@ public class Renderer {
 	public static int mWidth,mHeight;
 	private String mWindowTitle;
 	private long mWindow;
-	private Shader mShader=new Shader();
-	private CameraOrtho2d mCamera = null;
 	private GLFWWindowSizeCallback windowSizeCallback = null;
 	private GLFWScrollCallback scrollCallback = null;
-	Vector<Texture> mTextureVector = new Vector<>();
+	public static Vector<Texture> mTextureVector = new Vector<>();
+	private Vector<Scene> mScenesVector = new Vector<>();
+	private int activeScene = 0;
 	
-//	text element holders
-	public static Vector<Quad> mTextVector = new Vector<>();
-	VertexArray mTextVertexArray = new VertexArray();
-	
-//	UI element holders
-	public static Vector<Quad> mUIQuadVector = new Vector<>();
-	VertexArray mUIVertexArray = new VertexArray();
-	
-//	Viewport element holders
-	Vector<Quad> mVQuadVector = new Vector<>();
-	VertexArray mVVertexArray = new VertexArray();
+//	public Scene mScene = new Scene();
 	
 	//########## External public functionality ##########
-	
+
 	public Renderer(int width,int height, String title) {
 		mWidth = width;
 		mHeight = height;
@@ -76,6 +64,20 @@ public class Renderer {
 		return true;
 	}
 	
+	public void addScene(Scene pScene) {
+		mScenesVector.add(pScene);
+		pScene.setSceneIdentifier(mScenesVector.size());
+	}
+	
+	public int getActiveScene() {
+		return activeScene;
+	}
+
+	public void setActiveScene(int activeScene) {
+		this.activeScene = activeScene;
+		mScenesVector.get(activeScene).initVertexArray();
+	}
+	
 	public void runloop() {
 		while (!glfwWindowShouldClose(mWindow)) {
 			ProcessInput();
@@ -85,82 +87,28 @@ public class Renderer {
 	}
 	
 	public void terminate() {
-		mShader.delete();
-		mUIVertexArray.delete();
 		for(int i=0;i<mTextureVector.size();i++) {
 			mTextureVector.get(i).delete();
 		}
-//		plane.delete();
+		windowSizeCallback.free();
+		scrollCallback.free();
+		for(int i=0;i<mScenesVector.size();i++) {
+			mScenesVector.get(i).delete();
+		}
 		glfwTerminate();
-	}
-	
-	public void initShader(String vs,String fs) throws IOException {
-		mShader.load(vs, fs);
-	}
-	
-	public void initVertexArray() {
-		mUIVertexArray.init(mUIQuadVector);
-		mVVertexArray.init(mVQuadVector);
-		mTextVertexArray.init(mTextVector);
-	}
-	
-	public void enableCamera() {
-		mCamera = new CameraOrtho2d(mWidth, mHeight);
-		mShader.setCamera(mCamera.getProjection());
 	}
 	
 	//########## Internal private functionality ##########
 	
 //	Drawing functions
-	private void DrawViewPort() {
-		for(int i=0;i<mTextureVector.size();i++) {
-			mTextureVector.get(i).setActive();
-		}
-		mShader.setCamera(mCamera.getProjection());
-		mShader.setActive();
-		mVVertexArray.setActive();
-		GL33.glDrawElements(GL33.GL_TRIANGLES, mVVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
-	}
-	
-	private void DrawUI() {
-		for(int i=0;i<mTextureVector.size();i++) {
-			mTextureVector.get(i).setActive();
-		}
-		mShader.disableCamera();
-		mShader.setActive();
-		mUIVertexArray.setActive();
-		GL33.glDrawElements(GL33.GL_TRIANGLES, mUIVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
-	}
-	
-	private void DrawText() {
-		GL33.glEnable(GL33.GL_BLEND);
-		GL33.glBlendFunc(GL33.GL_ONE, GL33.GL_ONE);
-		for(int i=0;i<mTextureVector.size();i++) {
-			mTextureVector.get(i).setActive();
-		}
-		mShader.setActive();
-		mTextVertexArray.setActive();
-		GL33.glDrawElements(GL33.GL_TRIANGLES, mTextVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
-		GL33.glDisable(GL33.GL_BLEND);
-	}
 	
 	private void ProcessOutput() {
 		
 		glClear(GL_COLOR_BUFFER_BIT);
-		
-		DrawViewPort();
-		DrawUI();
-		DrawText();
-		
+//		mScene.renderScene(mTextureVector);
+		mScenesVector.get(activeScene).render();
 		glfwSwapBuffers(mWindow);
 		
-	}
-	
-	private void addElement() {
-		Quad temp = new Quad(0.0f,0.0f,0.3f,0.3f);
-		temp.setTexture(1.0f);
-		mVQuadVector.add(temp);
-		initVertexArray();
 	}
 	
 	private void ProcessInput() {
@@ -169,10 +117,6 @@ public class Renderer {
 		//add key maps here
 		if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE)==1) {
 			glfwSetWindowShouldClose(mWindow,true);
-		}
-		
-		if (glfwGetKey(mWindow, GLFW_KEY_A)==1) {
-			addElement();
 		}
 		
 	}
@@ -186,10 +130,6 @@ public class Renderer {
 				mWidth=width;
 				mHeight=height;
 				glViewport(0, 0, width, height);
-				if (mCamera.isEnabled()) {
-					mCamera.setProjection(width, height);
-				}
-				System.out.println(mWidth+"  "+mHeight);
 				
 			}
 		};
@@ -198,7 +138,6 @@ public class Renderer {
 			
 			@Override
 			public void invoke(long window, double xoffset, double yoffset) {
-				mCamera.setScale((float)yoffset*0.1f);
 			}
 		};
 		

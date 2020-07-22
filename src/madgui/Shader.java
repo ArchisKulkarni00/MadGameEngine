@@ -13,7 +13,7 @@ public class Shader {
 	
 	private int shaderProgram;
 	private String vertexShader,fragmentShader;
-	private Matrix4f identitiyMatrix4f = new Matrix4f(); 
+	private Matrix4f identitiyMatrix4f = new Matrix4f().identity(); 
 	
 	
 	public int getShaderProgram() {
