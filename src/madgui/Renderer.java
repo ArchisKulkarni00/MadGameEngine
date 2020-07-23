@@ -8,17 +8,26 @@ import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 
+import madgui.TimerControl;
+
 public class Renderer {
 	
 	//########## Internal Data members ##########
 	public static int mWidth,mHeight;
 	private String mWindowTitle;
-	private long mWindow;
+	public static long mWindow;
 	private GLFWWindowSizeCallback windowSizeCallback = null;
 	private GLFWScrollCallback scrollCallback = null;
 	public static Vector<Texture> mTextureVector = new Vector<>();
 	private Vector<Scene> mScenesVector = new Vector<>();
 	private int activeScene = 0;
+	
+	private double frameCapacity = 1.0/60.0;
+	private double initTime = 0.0;
+	private double finalTime = 0.0;
+	private double deltaTime = 0.0;
+	private double fpsChecker = 0.0;
+	private int frames = 0;
 	
 //	public Scene mScene = new Scene();
 	
@@ -80,8 +89,33 @@ public class Renderer {
 	
 	public void runloop() {
 		while (!glfwWindowShouldClose(mWindow)) {
+//			we get initial time reading
+			initTime = TimerControl.getTime();
+			
 			ProcessInput();
 			ProcessOutput();
+			
+//			we get time after processing
+			finalTime = TimerControl.getTime();
+			
+//			we get total time of executing the processes
+			deltaTime = finalTime-initTime;
+			
+//			wait till time for 1 frame is completed if processing finishes before allotted time
+			while (deltaTime<=frameCapacity) {
+				deltaTime = TimerControl.getTime()-initTime;
+			}
+			
+//			frame rate calculation code
+			
+//			frames++;
+//			fpsChecker+=deltaTime;
+//			if (fpsChecker>=1.0) {
+//				fpsChecker=0;
+//				System.out.println("FPS: "+frames);
+//				frames=0;
+//			}
+			
 		}
 		
 	}
@@ -118,6 +152,12 @@ public class Renderer {
 		if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE)==1) {
 			glfwSetWindowShouldClose(mWindow,true);
 		}
+		
+		if (glfwGetKey(mWindow, GLFW_KEY_O)==1) {
+			setActiveScene(1);
+		}
+		
+		mScenesVector.get(activeScene).updateCamera();
 		
 	}
 	

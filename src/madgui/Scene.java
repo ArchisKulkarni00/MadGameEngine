@@ -1,8 +1,19 @@
 package madgui;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_C;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
+
+import static org.lwjgl.glfw.GLFW.glfwGetKey;
+import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
+
 import java.io.IOException;
 import java.util.Vector;
 
+import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.opengl.GL33;
 
 import widgets.Entity;
@@ -11,10 +22,14 @@ public class Scene {
 	
 	//########## Internal Data members ##########
 	
-	public int sceneIdentifier = -1;
+	private int sceneIdentifier = -1;
 
 	public Shader mShader = new Shader();
 	public CameraOrtho2d mCamera = null;
+	private Vector3f cameraPosition = new Vector3f(0,0,0);
+	
+	GLFWScrollCallback scrollCallback = null;
+	
 //	public Vector<Texture> mTextureVector = new Vector<>();
 	
 //	text element holders
@@ -70,6 +85,31 @@ public class Scene {
 	public void enableCamera() {
 		mCamera = new CameraOrtho2d(Renderer.mWidth, Renderer.mHeight);
 		mShader.setCamera(mCamera.getProjection());
+//		setScrollCallback();
+	}
+	
+	public void updateCamera() {
+		cameraPosition.x=0.0f;
+		cameraPosition.y=0.0f;
+		cameraPosition.z=0.0f;
+		if (glfwGetKey(Renderer.mWindow, GLFW_KEY_S)==1) {
+			cameraPosition.add(0, 0.05f, 0);
+		}
+		
+		if (glfwGetKey(Renderer.mWindow, GLFW_KEY_W)==1) {
+			cameraPosition.add(0, -0.05f, 0);
+		}
+		
+		if (glfwGetKey(Renderer.mWindow, GLFW_KEY_D)==1) {
+			cameraPosition.add(-0.05f, 0, 0);
+		}
+		
+		if (glfwGetKey(Renderer.mWindow, GLFW_KEY_A)==1) {
+			cameraPosition.add(0.05f, 0, 0);
+		}
+		
+		mCamera.setTransaltion(cameraPosition);
+		
 	}
 	
 	public void render() {
@@ -81,7 +121,7 @@ public class Scene {
 	//########## Internal private functionality ##########
 	
 //	Drawing functions
-	void DrawViewPort() {
+	private void DrawViewPort() {
 		for(int i=0;i<Renderer.mTextureVector.size();i++) {
 			Renderer.mTextureVector.get(i).setActive();
 		}
@@ -91,7 +131,7 @@ public class Scene {
 		GL33.glDrawElements(GL33.GL_TRIANGLES, mVVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
 	}
 	
-	void DrawUI() {
+	private void DrawUI() {
 		for(int i=0;i<Renderer.mTextureVector.size();i++) {
 			Renderer.mTextureVector.get(i).setActive();
 		}
@@ -101,7 +141,7 @@ public class Scene {
 		GL33.glDrawElements(GL33.GL_TRIANGLES, mUIVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
 	}
 	
-	void DrawText() {
+	private void DrawText() {
 		GL33.glEnable(GL33.GL_BLEND);
 		GL33.glBlendFunc(GL33.GL_ONE, GL33.GL_ONE);
 		for(int i=0;i<Renderer.mTextureVector.size();i++) {
@@ -111,6 +151,26 @@ public class Scene {
 		mTextVertexArray.setActive();
 		GL33.glDrawElements(GL33.GL_TRIANGLES, mTextVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
 		GL33.glDisable(GL33.GL_BLEND);
+	}
+	
+	private void setScrollCallback() {
+		scrollCallback = new GLFWScrollCallback() {
+			
+			@Override
+			public void invoke(long window, double xoffset, double yoffset) {
+				
+				if (glfwGetKey(Renderer.mWindow, GLFW_KEY_C)==1) {
+					mCamera.setScale((float)yoffset*0.01f);
+				}
+				
+				else {
+					mCamera.setScale((float)yoffset*0.1f);
+				}
+				
+			}
+		};
+		
+		glfwSetScrollCallback(Renderer.mWindow, scrollCallback);
 	}
 	
 	

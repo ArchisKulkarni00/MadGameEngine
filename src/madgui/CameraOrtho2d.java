@@ -1,10 +1,12 @@
 package madgui;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class CameraOrtho2d {
 	
 	private Matrix4f projection;
+	private Vector3f position;
 	float scale = 1.0f;
 	private boolean isEnabled;
 	float width,height;
@@ -13,7 +15,10 @@ public class CameraOrtho2d {
 //		setProjection(sWidth, sHeight);
 		width = sWidth;
 		height=sHeight;
-		projection = new Matrix4f().ortho2D(-width/height, width/height, -height/height, height/height).scale(scale);
+		position = new Vector3f(0.3f,0.1f,0);
+		projection = new Matrix4f().ortho2D(-width/height, width/height, -height/height, height/height)
+				.translate(position)
+				.scale(scale);
 		isEnabled = true;
 	}
 	
@@ -25,7 +30,9 @@ public class CameraOrtho2d {
 	
 	private void updateProjection() {
 		projection = projection.identity();
-		projection =  projection.ortho2D(-width/height, width/height, -height/height, height/height).scale(scale);
+		projection =  projection.ortho2D(-width/height, width/height, -height/height, height/height)
+				.translate(position)
+				.scale(scale);
 	}
 	
 	public float getScale() {
@@ -34,6 +41,11 @@ public class CameraOrtho2d {
 
 	public void setScale(float scale) {
 		this.scale = Math.abs(this.scale+scale);
+		updateProjection();
+	}
+	
+	public void setTransaltion(Vector3f pVector) {
+		position.add(pVector);
 		updateProjection();
 	}
 
