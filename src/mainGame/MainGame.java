@@ -3,6 +3,7 @@ package mainGame;
 import java.io.IOException;
 
 import madgui.Quad;
+import madgui.QuadDynamic;
 import madgui.Renderer;
 import madgui.Scene;
 import madgui.Texture;
@@ -16,30 +17,26 @@ public class MainGame {
 		Scene mScene = new Scene();
 		renderer.addScene(mScene);
 		
-		mScene.initShader("Shaders/vs001", "Shaders/fs002");		
+		mScene.initDynShader("Shaders/vs_dyn", "Shaders/fs_dyn");
+		mScene.initShader("Shaders/vs001", "Shaders/fs002");
 		mScene.enableCamera();
+		
+		QuadDynamic mQuad1 = new QuadDynamic();
+		mQuad1.TranslateBy(0.7f,0.7f);
+		mQuad1.Scale(0.1f, 0.1f);
+		mScene.add(mQuad1);
+
+//		QuadDynamic mQuad3 = new QuadDynamic();
+//		mQuad3.TranslateBy(-0.5f,0.6f);
+//		mScene.add(mQuad3);
 		
 		Quad mQuad = new Quad(-1.0f, 1.0f, 20.0f, 20.0f);
 		mQuad.setTexture(1);
 		mQuad.setCoordinates(0.0f, 0.0f, 40.0f, 40.0f);
-		mScene.mVQuadVector.add(mQuad);
+		mScene.add(mQuad);
 		
-		Scene mScene1 = new Scene();
-		renderer.addScene(mScene1);
-		
-		mScene1.initShader("Shaders/vs001", "Shaders/fs002");		
-		mScene1.enableCamera();
-		
-		Quad mQuad1 = new Quad(-1.0f, 1.0f, 20.0f, 20.0f);
-		mQuad1.setTexture(2);
-		mQuad1.setCoordinates(0.0f, 0.0f, 40.0f, 40.0f);
-		mScene1.mVQuadVector.add(mQuad1);
-
 		Texture mTexture = new Texture("images/af32T.png", 1);
 		Renderer.mTextureVector.add(mTexture);
-		
-		Texture mTexture1 = new Texture("images/beach_soil.jpg", 2);
-		Renderer.mTextureVector.add(mTexture1);
 		
 		if (isRunning) {
 			renderer.setActiveScene(0);

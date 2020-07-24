@@ -51,6 +51,13 @@ public class Shader {
 		GL33.glUniformMatrix4fv(location, false, buffer);
 	}
 	
+	public void setQuadTransformation(Matrix4f model) {
+		int location = GL33.glGetUniformLocation(shaderProgram, "model");
+		FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
+		model.get(buffer);
+		GL33.glUniformMatrix4fv(location, false, buffer);
+	}
+	
 	public void disableCamera() {
 		int location = GL33.glGetUniformLocation(shaderProgram, "projection");
 		FloatBuffer buffer = BufferUtils.createFloatBuffer(16);

@@ -8,7 +8,6 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 
 import static org.lwjgl.glfw.GLFW.glfwGetKey;
 import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
-
 import java.io.IOException;
 import java.util.Vector;
 
@@ -24,8 +23,9 @@ public class Scene {
 	
 	private int sceneIdentifier = -1;
 
-	public Shader mShader = new Shader();
-	public CameraOrtho2d mCamera = null;
+	private Shader mShader = new Shader();
+	private Shader mDynShader = new Shader();
+	private CameraOrtho2d mCamera = null;
 	private Vector3f cameraPosition = new Vector3f(0,0,0);
 	
 	GLFWScrollCallback scrollCallback = null;
@@ -40,9 +40,13 @@ public class Scene {
 	public Vector<Quad> mUIQuadVector = new Vector<>();
 	VertexArray mUIVertexArray = new VertexArray();
 	
-//	Viewport element holders
+//	Viewport element holders (static)
 	public Vector<Quad> mVQuadVector = new Vector<>();
 	VertexArray mVVertexArray = new VertexArray();
+	
+//	viewport element holders (dynamic)
+	public Vector<QuadDynamic> mDynamicVector = new Vector<>();
+	VertexArrayDyn mDynVertexArray = new VertexArrayDyn();
 	
 	//########## External public functionality ##########
 	public int getSceneIdentifier() {
@@ -65,27 +69,56 @@ public class Scene {
 		pText.push(mTextVector);
 	}
 	
+	public void add(QuadDynamic pQuadDynamic) {
+		mDynamicVector.add(pQuadDynamic);
+	}
+	
 	public void delete() {
+		mDynShader.delete();
 		mShader.delete();
 		mUIVertexArray.delete();
 		mVVertexArray.delete();
 		mTextVertexArray.delete();
+		mDynVertexArray.delete();
+		mVQuadVector.clear();
+		mTextVector.clear();
+		mUIQuadVector.clear();
+		mDynamicVector.clear();
 	}
 	
 	public void initShader(String vs,String fs) throws IOException {
 		mShader.load(vs, fs);
 	}
 	
+	public void initDynShader(String vs,String fs) throws IOException {
+		mDynShader.load(vs, fs);
+	}
+	
 	public void initVertexArray() {
-		mUIVertexArray.init(mUIQuadVector);
-		mVVertexArray.init(mVQuadVector);
-		mTextVertexArray.init(mTextVector);
+		if (mUIQuadVector.size()>0) {
+			mUIVertexArray.init(mUIQuadVector);
+		}
+		
+		if (mVQuadVector.size()>0) {
+			mVVertexArray.init(mVQuadVector);
+		}
+		
+		if (mTextVector.size()>0) {
+			mTextVertexArray.init(mTextVector);
+		}
+		
+		if (mDynamicVector.size()>0) {
+			mDynVertexArray.init();
+		}
+		
+		
+		
 	}
 	
 	public void enableCamera() {
 		mCamera = new CameraOrtho2d(Renderer.mWidth, Renderer.mHeight);
-		mShader.setCamera(mCamera.getProjection());
-//		setScrollCallback();
+//		mShader.setCamera(mCamera.getProjection());
+		setScrollCallback();
 	}
 	
 	public void updateCamera() {
@@ -109,24 +142,42 @@ public class Scene {
 		}
 		
 		mCamera.setTransaltion(cameraPosition);
-		
 	}
 	
 	public void render() {
-		DrawViewPort();
-		DrawUI();
-		DrawText();
+		if (mUIQuadVector.size()>0) {
+			DrawUI();
+		}
+		if (mVQuadVector.size()>0) {
+			DrawViewPort();
+		}
+		if (mTextVector.size()>0) {
+			DrawText();
+		}
+		
+//		disableShader();
+		
+		if (mDynamicVector.size()>0) {
+			DrawDyn();
+		}
+		
+//		disableShader();
+		
 	}
 	
 	//########## Internal private functionality ##########
+	
+	private void disableShader() {
+		GL33.glUseProgram(0);
+	}
 	
 //	Drawing functions
 	private void DrawViewPort() {
 		for(int i=0;i<Renderer.mTextureVector.size();i++) {
 			Renderer.mTextureVector.get(i).setActive();
 		}
-		mShader.setCamera(mCamera.getProjection());
 		mShader.setActive();
+		mShader.setCamera(mCamera.getProjection());
 		mVVertexArray.setActive();
 		GL33.glDrawElements(GL33.GL_TRIANGLES, mVVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
 	}
@@ -151,6 +202,19 @@ public class Scene {
 		mTextVertexArray.setActive();
 		GL33.glDrawElements(GL33.GL_TRIANGLES, mTextVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
 		GL33.glDisable(GL33.GL_BLEND);
+	}
+	
+	private void DrawDyn() {
+		for(int j=0;j<mDynamicVector.size();j++) {
+//			for(int i=0;i<Renderer.mTextureVector.size();i++) {
+//				Renderer.mTextureVector.get(i).setActive();
+//			}
+			mDynShader.setActive();
+			mDynShader.setCamera(mCamera.getProjection());
+			mDynShader.setQuadTransformation(mDynamicVector.get(j).getModelMatrix());
+			mDynVertexArray.setActive();
+			GL33.glDrawElements(GL33.GL_TRIANGLES, mDynVertexArray.getVertexCount(), GL33.GL_UNSIGNED_INT, 0);
+		}
 	}
 	
 	private void setScrollCallback() {

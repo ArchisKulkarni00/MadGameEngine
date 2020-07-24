@@ -15,7 +15,7 @@ public class CameraOrtho2d {
 //		setProjection(sWidth, sHeight);
 		width = sWidth;
 		height=sHeight;
-		position = new Vector3f(0.3f,0.1f,0);
+		position = new Vector3f(0.0f,0.0f,0);
 		projection = new Matrix4f().ortho2D(-width/height, width/height, -height/height, height/height)
 				.translate(position)
 				.scale(scale);
@@ -56,6 +56,9 @@ public class CameraOrtho2d {
 	public boolean isEnabled() {
 		return isEnabled;
 	}
-
+	
+	public Vector3f getPosition() {
+		return position;
+	}
 
 }
